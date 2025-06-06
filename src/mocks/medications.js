@@ -1,0 +1,17 @@
+export const MOCK_MEDICATIONS = [
+  { id: 1, name: "Paracetamol 500mg", type: "Analgésico" },
+  { id: 2, name: "Ibuprofeno 400mg", type: "Antiinflamatorio" },
+  { id: 3, name: "Loratadina 10mg", type: "Antialérgico" },
+  { id: 4, name: "Omeprazol 20mg", type: "Antiácido" },
+  { id: 5, name: "Amoxicilina 500mg", type: "Antibiótico" },
+  { id: 6, name: "Atorvastatina 20mg", type: "Hipolipemiante" },
+  { id: 7, name: "Losartán 50mg", type: "Antihipertensivo" },
+  { id: 8, name: "Metformina 850mg", type: "Antidiabético" },
+  { id: 9, name: "Levotiroxina 100mcg", type: "Hormonal" },
+  { id: 10, name: "Sertralina 50mg", type: "Antidepresivo" },
+  { id: 11, name: "Diazepam 10mg", type: "Ansiolítico" },
+  { id: 12, name: "Salbutamol Inhalador", type: "Broncodilatador" },
+  { id: 13, name: "Cetirizina 10mg", type: "Antialérgico" },
+  { id: 14, name: "Naproxeno 550mg", type: "Antiinflamatorio" },
+  { id: 15, name: "Ciprofloxacino 500mg", type: "Antibiótico" },
+];

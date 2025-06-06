@@ -1,0 +1,378 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet styles */
+@import 'leaflet/dist/leaflet.css';
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* View Transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition-old(medication-details),
+::view-transition-new(medication-details) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(medication-details) {
+  z-index: 1;
+}
+::view-transition-new(medication-details) {
+  z-index: 9999;
+}
+
+.medication-card {
+  view-transition-name: medication-details;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* View transitions */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Glassmorphism */
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+
+/* Define the radar effect */
+/* Define the radar effect animation */
+
+
+/* Style for the radar circle */
+/* Definición de la animación de radar */
+@keyframes radar-pulse {
+
+  100% {
+    transform: scale(1.1);  /* La onda se expande aún más */
+    opacity: 0;
+  }
+}
+
+/* Estilos para el círculo de radar */
+.radar-effect {
+  animation: radar-pulse 3s infinite ease-out;  /* Aplicamos la animación */
+  transform-origin: center;  /* Asegura que la animación se realice desde el centro del círculo */
+
+}
+
+
+
+/* Animación de entrada para los marcadores */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.marker-animate {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+
+}
+
+.google-search-container {
+  width: 100%;
+  max-width: 584px;
+  margin: 0 auto;
+}
+
+.google-search-form {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 44px;
+  border-radius: 24px;
+  background-color: #fff;
+  transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.google-search-form:hover,
+.google-search-form:focus-within {
+  box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+}
+
+.google-search-input {
+  flex-grow: 1;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #202124;
+  font-size: 16px;
+  padding: 0;
+}
+
+.google-search-input::placeholder {
+  color: #9aa0a6;
+}
+
+.google-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  padding-right: 8px;
+  color: #9aa0a6;
+}
+
+.google-search-mic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #4285f4;
+  cursor: pointer;
+}
+
+.google-search-mic:hover {
+  background-color: #f1f3f4;
+}
+
+.google-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #70757a;
+  cursor: pointer;
+}
+
+.google-search-clear:hover {
+  background-color: #f1f3f4;
+}
+
+.pharmacy-tooltip {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #333;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-tooltip-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltip-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tooltip-distance {
+  font-size: 11px;
+  color: #666;
+}
+
+
+/* Para navegadores basados en WebKit (Chrome, Safari, Edge) */
+.my-scrollable-div::-webkit-scrollbar {
+  width: 8px;            /* ancho de la barra */
+}
+
+.my-scrollable-div::-webkit-scrollbar-track {
+  background: #2d3748;   /* fondo del track (ej. gris oscuro) */
+  border-radius: 4px;
+}
+
+.my-scrollable-div::-webkit-scrollbar-thumb {
+  background-color: #38bdf8; /* color del pulgar (ej. azul cyan) */
+  border-radius: 4px;
+  border: 2px solid #2d3748; /* espacio alrededor del pulgar */
+}
+
+/* Para Firefox */
+.my-scrollable-div {
+  scrollbar-width: thin;          /* scrollbar delgada */
+  scrollbar-color: #38bdf8 #2d3748; /* thumb y track */
+}
+@keyframes moveArrow {
+  0% {
+    left: -1.5rem;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    left: calc(100% - 1.5rem);
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+.animate-moveArrow {
+  animation: moveArrow 3s linear infinite;
+  position: absolute;
+}
+
+.pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  background: #4d60c8;
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -20px 0 0 -20px;
+}
+.pin:after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  margin: 8px 0 0 8px;
+  background: #e6e6e6;
+  position: absolute;
+  border-radius: 50%;
+}
+
+.bounce {
+  animation-name: bounce;
+  animation-fill-mode: both;
+  animation-duration: 1s;
+}
+
+.pulse {
+  background: #d6d4d4;
+  border-radius: 50%;
+  height: 14px;
+  width: 14px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: 11px 0px 0px -12px;
+  transform: rotateX(55deg);
+  z-index: -2;
+}
+.pulse:after {
+  content: "";
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
+  position: absolute;
+  margin: -13px 0 0 -13px;
+  animation: pulsate 1s ease-out;
+  animation-iteration-count: infinite;
+  opacity: 0;
+  box-shadow: 0 0 1px 2px #4d60c8;
+  animation-delay: 1.1s;
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(0.1, 0.1);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.2, 1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-2000px) rotate(-45deg);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(30px) rotate(-45deg);
+  }
+
+  80% {
+    transform: translateY(-10px) rotate(-45deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(-45deg);
+  }
+}
+
+.arrow-right {
+  width: 50px; height: 50px*2;
+  position: relative;
+  background-color: #0B5C9A;
+  &:after, &:before {
+    content: "";
+    position: absolute;
+    border-top: 50px solid transparent;
+    border-bottom: 50px solid transparent;
+    border-left: 50px solid #0B5C9A;
+  }
+  &:after {
+    right: 0;
+    transform: translateX(100%);
+  }
+  &:before {
+    left: 0;
+    border-left-color: white;
+  }
+}
