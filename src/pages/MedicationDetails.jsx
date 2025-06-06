@@ -60,10 +60,14 @@ export default function MedicationDetails() {
 
 
   useEffect(() => {
-    if (userLocation) {
-      setLoadingPharmacies(true); // Inicia carga
+  let retryTimeout;
 
-      const query = `
+  const fetchPharmacies = () => {
+    if (!userLocation || realPharmacies.length > 0) return;
+
+    setLoadingPharmacies(true);
+
+    const query = `
       [out:json][timeout:25];
       (
         node["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
@@ -75,51 +79,63 @@ export default function MedicationDetails() {
       out skel qt;
     `;
 
-      axios.post('https://overpass-api.de/api/interpreter', query)
-        .then(response => {
-          const elements = response?.data?.elements;
-
-          if (Array.isArray(elements) && elements.length > 0) {
-            const newPharmacies = elements
-              .filter(element => element.type === 'node' && element.tags)
-              .map(pharmacy => {
-                const distance = getDistance(userLocation[0], userLocation[1], pharmacy.lat, pharmacy.lon);
-                return {
-                  id: pharmacy.id,
-                  name: pharmacy.tags.name || 'Farmacia',
-                  address: pharmacy.tags['addr:street']
-                    ? `${pharmacy.tags['addr:street']} ${pharmacy.tags['addr:housenumber'] || ''}`
-                    : 'Dirección no disponible',
-                  coordinates: {
-                    lat: pharmacy.lat,
-                    lng: pharmacy.lon
-                  },
-                  phone: pharmacy.tags.phone || 'No disponible',
-                  hours: pharmacy.tags.opening_hours || 'Horario no disponible',
-                  distance: distance.toFixed(2)
-                };
-              });
-
-            const filteredPharmacies = newPharmacies.filter(pharmacy => {
-              const distance = getDistance(userLocation[0], userLocation[1], pharmacy.coordinates.lat, pharmacy.coordinates.lng);
-              return distance <= MAP_CONFIG.searchRadius;
+    axios.post('https://overpass-api.de/api/interpreter', query)
+      .then(response => {
+        const elements = response?.data?.elements;
+        if (Array.isArray(elements) && elements.length > 0) {
+          const newPharmacies = elements
+            .filter(el => el.type === 'node' && el.tags)
+            .map(pharmacy => {
+              const distance = getDistance(userLocation[0], userLocation[1], pharmacy.lat, pharmacy.lon);
+              return {
+                id: pharmacy.id,
+                name: pharmacy.tags.name || 'Farmacia',
+                address: pharmacy.tags['addr:street']
+                  ? `${pharmacy.tags['addr:street']} ${pharmacy.tags['addr:housenumber'] || ''}`
+                  : 'Dirección no disponible',
+                coordinates: {
+                  lat: pharmacy.lat,
+                  lng: pharmacy.lon
+                },
+                phone: pharmacy.tags.phone || 'No disponible',
+                hours: pharmacy.tags.opening_hours || 'Horario no disponible',
+                distance: distance.toFixed(2)
+              };
             });
 
+          const filtered = newPharmacies.filter(p => {
+            const d = getDistance(userLocation[0], userLocation[1], p.coordinates.lat, p.coordinates.lng);
+            return d <= MAP_CONFIG.searchRadius;
+          });
+
+          if (filtered.length > 0) {
             setAllPharmacies(newPharmacies);
-            setRealPharmacies(filteredPharmacies);
-            setPrevPharmacies(filteredPharmacies);
+            setRealPharmacies(filtered);
+            setPrevPharmacies(filtered);
           } else {
-            console.warn('La API de Overpass no devolvió elementos válidos.');
+            console.warn("No se encontraron farmacias cercanas. Reintentando...");
+            retryTimeout = setTimeout(fetchPharmacies, 3000); // Reintenta en 3s
           }
-        })
-        .catch(error => {
-          console.error('Error fetching pharmacies:', error);
-        })
-        .finally(() => {
-          setLoadingPharmacies(false);
-        });
-    }
-  }, [userLocation]);
+        } else {
+          console.warn("Respuesta vacía de la API. Reintentando...");
+          retryTimeout = setTimeout(fetchPharmacies, 3000); // Reintenta en 3s
+        }
+      })
+      .catch(err => {
+        console.error("Error al consultar farmacias:", err);
+        retryTimeout = setTimeout(fetchPharmacies, 3000); // Reintenta en 3s
+      })
+      .finally(() => {
+        setLoadingPharmacies(false);
+      });
+  };
+
+  fetchPharmacies();
+
+  return () => {
+    clearTimeout(retryTimeout); // limpia si el componente se desmonta
+  };
+}, [userLocation, realPharmacies.length]);
 
 
   useEffect(() => {
