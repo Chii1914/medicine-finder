@@ -61,56 +61,62 @@ export default function MedicationDetails() {
 
   useEffect(() => {
     if (userLocation) {
-      // Si el usuario tiene ubicación, se comienza a cargar las farmacias
       setLoadingPharmacies(true); // Inicia carga
+
       const query = `
-        [out:json][timeout:25];
-        (
-          node["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
-          way["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
-          relation["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
-        );
-        out body;
-        >;
-        out skel qt;
-      `;
+      [out:json][timeout:25];
+      (
+        node["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
+        way["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
+        relation["amenity"="pharmacy"](around:${MAP_CONFIG.maxSearchRadius},${userLocation[0]},${userLocation[1]});
+      );
+      out body;
+      >;
+      out skel qt;
+    `;
 
       axios.post('https://overpass-api.de/api/interpreter', query)
         .then(response => {
-          const newPharmacies = response.data.elements
-            .filter(element => element.type === 'node' && element.tags)
-            .map(pharmacy => {
-              const distance = getDistance(userLocation[0], userLocation[1], pharmacy.lat, pharmacy.lon);
-              return {
-                id: pharmacy.id,
-                name: pharmacy.tags.name || 'Farmacia',
-                address: pharmacy.tags['addr:street']
-                  ? `${pharmacy.tags['addr:street']} ${pharmacy.tags['addr:housenumber'] || ''}`
-                  : 'Dirección no disponible',
-                coordinates: {
-                  lat: pharmacy.lat,
-                  lng: pharmacy.lon
-                },
-                phone: pharmacy.tags.phone || 'No disponible',
-                hours: pharmacy.tags.opening_hours || 'Horario no disponible',
-                distance: distance.toFixed(2) // Distancia en metros con 2 decimales
-              };
+          const elements = response?.data?.elements;
+
+          if (Array.isArray(elements) && elements.length > 0) {
+            const newPharmacies = elements
+              .filter(element => element.type === 'node' && element.tags)
+              .map(pharmacy => {
+                const distance = getDistance(userLocation[0], userLocation[1], pharmacy.lat, pharmacy.lon);
+                return {
+                  id: pharmacy.id,
+                  name: pharmacy.tags.name || 'Farmacia',
+                  address: pharmacy.tags['addr:street']
+                    ? `${pharmacy.tags['addr:street']} ${pharmacy.tags['addr:housenumber'] || ''}`
+                    : 'Dirección no disponible',
+                  coordinates: {
+                    lat: pharmacy.lat,
+                    lng: pharmacy.lon
+                  },
+                  phone: pharmacy.tags.phone || 'No disponible',
+                  hours: pharmacy.tags.opening_hours || 'Horario no disponible',
+                  distance: distance.toFixed(2)
+                };
+              });
+
+            const filteredPharmacies = newPharmacies.filter(pharmacy => {
+              const distance = getDistance(userLocation[0], userLocation[1], pharmacy.coordinates.lat, pharmacy.coordinates.lng);
+              return distance <= MAP_CONFIG.searchRadius;
             });
 
-          const filteredPharmacies = newPharmacies.filter(pharmacy => {
-            const distance = getDistance(userLocation[0], userLocation[1], pharmacy.coordinates.lat, pharmacy.coordinates.lng);
-            return distance <= MAP_CONFIG.searchRadius;
-          });
-
-          setAllPharmacies(newPharmacies); // Guardamos todas las farmacias sin filtro
-          setRealPharmacies(filteredPharmacies); // Mostramos todas las farmacias inicialmente
-          setPrevPharmacies(filteredPharmacies);
+            setAllPharmacies(newPharmacies);
+            setRealPharmacies(filteredPharmacies);
+            setPrevPharmacies(filteredPharmacies);
+          } else {
+            console.warn('La API de Overpass no devolvió elementos válidos.');
+          }
         })
         .catch(error => {
           console.error('Error fetching pharmacies:', error);
         })
         .finally(() => {
-          setLoadingPharmacies(false); // Termina carga
+          setLoadingPharmacies(false);
         });
     }
   }, [userLocation]);
