@@ -135,6 +135,7 @@ export default function MedicationDetails() {
     setSelectedPharmacy(pharmacy);
   };
 
+  console.log('Real Pharmacies:', realPharmacies);
   return (
     <div className="w-full h-screen bg-gray-100 flex overflow-hidden relative">
       {/* Cargando pantalla */}
