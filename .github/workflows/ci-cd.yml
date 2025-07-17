@@ -1,0 +1,77 @@
+# canchapp-front/.github/workflows/ci-cd-frontend.yml
+name: CanchApp Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - master # Trigger on pushes to the main branch
+    paths:
+      - 'src/**' # Only trigger if frontend source code changes
+      - 'public/**'
+      - 'package.json'
+      - 'Dockerfile'
+      - 'nginx.conf'
+      - 'docker-compose.yml' # Or other relevant files
+
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'Dockerfile'
+      - 'nginx.conf'
+      - 'docker-compose.yml'
+
+jobs:
+  build-and-push-frontend:
+    runs-on: ubuntu-latest # Use your self-hosted runner
+    steps:
+      - name: Checkout CanchApp Frontend repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push CanchApp Frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: . # Build from the root of this repository
+          file: Dockerfile # Use the Dockerfile in the root
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/canchapp-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/canchapp-frontend:${{ github.sha }}
+
+  deploy-frontend:
+    runs-on: ubuntu-latest # Use your self-hosted runner for deployment
+    needs: build-and-push-frontend # This job depends on the build job
+    steps:
+      - name: Checkout CanchApp Frontend repository for deployment
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub for deployment
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull and Deploy Frontend Service
+        working-directory: . # Execute docker compose from the repository root
+        run: |
+          echo "Stopping existing frontend service..."
+          # Stop and remove old containers, networks, and volumes (if any)
+          # Use --remove-orphans to remove services not defined in the compose file
+          docker compose -f docker-compose.yml down --remove-orphans || true # '|| true' prevents failure if no services are running
+
+          echo "Pulling latest frontend image..."
+          docker compose -f docker-compose.yml pull frontend # Pull only the frontend service
+
+          echo "Starting new frontend service..."
+          docker compose -f docker-compose.yml up -d frontend # Start only the frontend service
+
+          echo "Frontend Deployment complete!"
