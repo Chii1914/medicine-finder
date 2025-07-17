@@ -9,9 +9,11 @@ import {
   Navigation2,
   X,
   Navigation,
+  BellRing, // Added for alert icon
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import run from "../images/run.png";
+// import run from "../images/run.png"; // Assuming this is not used or handled differently
+import { io } from "socket.io-client"; // <-- IMPORT socket.io-client
 
 export default function Sidebar({
   pharmacies,
@@ -25,6 +27,10 @@ export default function Sidebar({
   const [navigatingToPharmacy, setNavigatingToPharmacy] = useState(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const pinnedCardRef = useRef(null)
+
+  // NEW STATE: To hold the urgent alert received via WebSocket
+  const [urgentAlert, setUrgentAlert] = useState(null);
+  const alertTimeoutRef = useRef(null); // Ref to store the timeout ID
 
   const toggleMobileSidebar = () => {
     setMobileSidebarOpen(!isMobileSidebarOpen);
@@ -110,6 +116,50 @@ export default function Sidebar({
       setExpandedPharmacy(selectedPharmacy)
     }
   }, [selectedPharmacy])
+
+  // --- NEW EFFECT FOR WEBSOCKET LISTENER ---
+  useEffect(() => {
+    // Connect to the WebSocket server (your pub-sub service's WS port)
+    // Ensure this URL matches your docker-compose.yml port mapping for pub-sub WS
+    const socket = io('http://localhost:3005');
+
+    socket.on('connect', () => {
+      console.log('WebSocket: Connected to pub-sub service!');
+    });
+
+    socket.on('disconnect', () => {
+      console.log('WebSocket: Disconnected from pub-sub service.');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('WebSocket: Connection error:', error);
+    });
+
+    // Listen for the 'urgentMedAlert' event
+    socket.on('urgentMedAlert', (alert) => {
+      console.log('WebSocket: Received urgent medical alert:', alert);
+      setUrgentAlert(alert); // Set the alert in state
+
+      // Clear any existing timeout
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+      }
+
+      // Set a timeout to clear the alert after 10 seconds (adjust as needed)
+      alertTimeoutRef.current = setTimeout(() => {
+        setUrgentAlert(null);
+      }, 10000); // Alert will disappear after 10 seconds
+    });
+
+    // Cleanup function: Disconnect WebSocket when component unmounts
+    return () => {
+      socket.disconnect();
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+      }
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+  // --- END WEBSOCKET EFFECT ---
 
 
   const renderPharmacyCard = (pharmacy, isPinned = false) => {
@@ -248,6 +298,34 @@ export default function Sidebar({
           </h2>
         </header>
 
+        {/* NEW: Urgent Alert Banner */}
+        {urgentAlert && (
+          <div className="bg-red-700 text-white p-3 mx-3 my-2 rounded-xl shadow-lg animate-pulse flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BellRing className="w-5 h-5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-sm">¡Alerta Médica Urgente!</p>
+                <p className="text-xs">Tipo: {urgentAlert.type} | Severidad: {urgentAlert.severity}</p>
+                <p className="text-xs">Precio: ${urgentAlert.price} | Notas: {urgentAlert.notes || 'N/A'}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setUrgentAlert(null);
+                if (alertTimeoutRef.current) {
+                  clearTimeout(alertTimeoutRef.current);
+                }
+              }}
+              className="text-white hover:text-gray-200 ml-2"
+              aria-label="Dismiss alert"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        {/* END NEW: Urgent Alert Banner */}
+
+
         <div
           className={`overflow-hidden transition-all duration-300 ${selectedPharmacy ? "max-h-[250px] opacity-100" : "max-h-0 opacity-0"
             }`}
@@ -268,8 +346,7 @@ export default function Sidebar({
 
                     </div>
                     <div className="relative w-full h-6 overflow-hidden">
-                      {/* <img src={run} alt="" className="" /> */}
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevrons-right-icon lucide-chevrons-right absolute absolute top-1/2 -translate-y-1/2 w-6 h-6 fill-emerald-400 animate-moveArrow"><path d="m6 17 5-5-5-5" /><path d="m13 17 5-5-5-5" /></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevrons-right-icon lucide-chevrons-right absolute absolute top-1/2 -translate-y-1/2 w-6 h-6 fill-emerald-400 animate-moveArrow"><path d="m6 17 5-5-5-5" /><path d="m13 17 5-5-5-5" /></svg>
                     </div>
                   </>
                 ) : (
@@ -340,6 +417,34 @@ export default function Sidebar({
             {isMobileSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
           </button>
         </div>
+
+        {/* NEW: Urgent Alert Banner for Mobile */}
+        {urgentAlert && isMobileSidebarOpen && (
+          <div className="bg-red-700 text-white p-3 mx-3 my-2 rounded-xl shadow-lg animate-pulse flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BellRing className="w-5 h-5 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-sm">¡Alerta Médica Urgente!</p>
+                <p className="text-xs">Tipo: {urgentAlert.type} | Severidad: {urgentAlert.severity}</p>
+                <p className="text-xs">Precio: ${urgentAlert.price} | Notas: {urgentAlert.notes || 'N/A'}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setUrgentAlert(null);
+                if (alertTimeoutRef.current) {
+                  clearTimeout(alertTimeoutRef.current);
+                }
+              }}
+              className="text-white hover:text-gray-200 ml-2"
+              aria-label="Dismiss alert"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+        {/* END NEW: Urgent Alert Banner for Mobile */}
+
 
         {/* Sección de farmacia seleccionada/navegación (móvil) */}
         {selectedPharmacy && isMobileSidebarOpen && (
