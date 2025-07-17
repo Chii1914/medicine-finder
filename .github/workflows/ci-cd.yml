@@ -1,5 +1,5 @@
 # canchapp-front/.github/workflows/ci-cd-frontend.yml
-name: CanchApp Frontend CI/CD
+name: workflow Medicine Finder Frontend CI/CD
 
 on:
   push:
