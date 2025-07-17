@@ -1,4 +1,4 @@
-# canchapp-front/.github/workflows/ci-cd-frontend.yml
+# medicine-front/.github/workflows/ci-cd-frontend.yml
 name: workflow Medicine Finder Frontend CI/CD
 
 on:
@@ -28,7 +28,7 @@ jobs:
   build-and-push-frontend:
     runs-on: ubuntu-latest # Use your self-hosted runner
     steps:
-      - name: Checkout CanchApp Frontend repository
+      - name: Checkout medicine Frontend repository
         uses: actions/checkout@v4
 
       - name: Log in to Docker Hub
@@ -37,21 +37,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push CanchApp Frontend Docker image
+      - name: Build and push medicine Frontend Docker image
         uses: docker/build-push-action@v5
         with:
           context: . # Build from the root of this repository
           file: Dockerfile # Use the Dockerfile in the root
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/canchapp-frontend:latest
-            ${{ secrets.DOCKER_USERNAME }}/canchapp-frontend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/medicine-frontend:latest
+            ${{ secrets.DOCKER_USERNAME }}/medicine-frontend:${{ github.sha }}
 
   deploy-frontend:
     runs-on: ubuntu-latest # Use your self-hosted runner for deployment
     needs: build-and-push-frontend # This job depends on the build job
     steps:
-      - name: Checkout CanchApp Frontend repository for deployment
+      - name: Checkout medicine Frontend repository for deployment
         uses: actions/checkout@v4
 
       - name: Log in to Docker Hub for deployment
