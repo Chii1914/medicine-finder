@@ -1,0 +1,7 @@
+services:
+  nextjs:
+    image: chiii1998/medicine-frontend:latest
+    container_name: medicine-frontend
+    restart: always
+    ports:
+      - "8888:3000"
